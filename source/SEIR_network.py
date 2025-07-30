@@ -9,36 +9,54 @@ from .model_output import SEIRModelOutput, SEIRParams
 
 
 class SEIRNetworkModel():
-    def __init__(self, population: int):
+    def __init__(self, population: int, ntype: str):
         self.population = population
 
         # FOLLOWING PARAMETERS ARE EPIDEMICALLY DETERMINED
         # R_0 HERE LIES IN RANGE [1; 2.5]
         self.min_params = SEIRParams(
-            beta=1/9, gamma=1/5, delta=1/9, init_inf_frac=1e-6, init_rec_frac=1e-2)
+            beta=1/9, gamma=1/5, delta=1/9, 
+            init_inf_frac=1e-6, init_rec_frac=1e-2)
         self.max_params = SEIRParams(
-            beta=0.625, gamma=1, delta=1/4, init_inf_frac=1e-3, init_rec_frac=2e-1)
+            beta=0.625, gamma=1, delta=1/4, 
+            init_inf_frac=1e-3, init_rec_frac=2e-1)
         self.last_sim_params = None
-
-        self.G = nx.barabasi_albert_graph(population, 5)
-
+        
+        if ntype=='ba':
+            self.G = nx.barabasi_albert_graph(population, 8)
+            print('ba')
+        elif ntype=='sw':
+            self.G = nx.watts_strogatz_graph(population, 8, 0.1)
+            print('sw')
+        elif ntype=='r':
+            # чтобы средняя степень была 8
+            self.G = nx.fast_gnp_random_graph(population, 8/population)
+            print('r')
+        
+        
     @staticmethod
     def find_nearest_idx(array, value):
         array = np.asarray(array)
         idx = (np.abs(array - value)).argmin()
         return idx
 
+    
     def transform_event_times_to_days(self, model_output, tmax):
         indices = []
         for day in range(tmax):
             index = self.find_nearest_idx(model_output.t, day)
             indices.append(index)
-        new_model_output = SEIRModelOutput(model_output.t[indices], model_output.S[indices],
-                                           model_output.E[indices], model_output.I[indices],
+        new_model_output = SEIRModelOutput(model_output.t[indices], 
+                                           model_output.S[indices],
+                                           model_output.E[indices], 
+                                           model_output.I[indices],
                                            model_output.R[indices])
         return new_model_output
 
-    def simulate(self, beta=1/7*1.5, gamma=1/2, delta=1/7, init_inf_frac=1e-4, init_rec_frac=0.15, tmax: int = 150):
+    
+    def simulate(self, beta=1/7*1.5, gamma=1/2, delta=1/7, 
+                 init_inf_frac=1e-4, init_rec_frac=0.15, 
+                 tmax: int = 150):
         '''
         Parameters:
 
@@ -62,7 +80,13 @@ class SEIRNetworkModel():
             "Incorrect initial conditions, immune + infected > population size!"
         for node in range(initial_recovered):
             initial_status[node+initial_infected] = 'R'
-        self.result = self.transform_event_times_to_days(SEIRModelOutput
-                                                         (*EoN.Gillespie_simple_contagion(self.G, H, J, initial_status,
-                                                                                          return_statuses=('S', 'E', 'I', 'R'), tmax=tmax)), tmax)
+        self.result = \
+            self.transform_event_times_to_days(
+                SEIRModelOutput(*EoN.Gillespie_simple_contagion(self.G, H, J, 
+                                                        initial_status,
+                                                        return_statuses=('S', 'E', 
+                                                                         'I', 'R'), 
+                                                                tmax=tmax)), 
+            tmax)
+        
         return self.result
