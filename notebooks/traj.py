@@ -95,18 +95,9 @@ def create_all(ntype = 'r', pop = 10**4):
 if __name__ == '__main__':
 
 
-    ntype = 'r'
-    pop = 50000   
-    res = create_all(ntype, pop)
-    pd.DataFrame(res).to_csv(f'../sim_data/time_{ntype}_{pop}.csv')
-    
-    
-    ntype = 'r'
-    pop = 100000   
-    res = create_all(ntype, pop)
-    pd.DataFrame(res).to_csv(f'../sim_data/time_{ntype}_{pop}.csv')
-    
     ntype = 'sw'
-    pop = 100000   
+    pop = 10000   
     res = create_all(ntype, pop)
     pd.DataFrame(res).to_csv(f'../sim_data/time_{ntype}_{pop}.csv')
+    
+    
