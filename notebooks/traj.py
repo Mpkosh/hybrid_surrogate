@@ -66,10 +66,10 @@ def create_all(ntype = 'r', pop = 10**4):
     # fraction of initially recovered
     init_rec_frac = 0
     # transmission rate
-    beta_arr = np.arange(0.04, 0.09, 0.01)
-    init_inf_frac_arr = np.arange(0.005, 0.011, 0.001)
+    beta_arr = np.arange(0.01, 0.2, 0.01) #np.arange(0.04, 0.09, 0.01)
+    init_inf_frac_arr = np.arange(0.004, 0.021, 0.0005) #np.arange(0.005, 0.011, 0.001)
 
-    n_runs = 50
+    n_runs = 10 #50
     times = []
     for beta in tqdm.tqdm(beta_arr):
         for init_inf_frac in init_inf_frac_arr:
@@ -95,8 +95,8 @@ def create_all(ntype = 'r', pop = 10**4):
 if __name__ == '__main__':
 
 
-    ntype = 'sw'
-    pop = 10000   
+    ntype = 'ba'
+    pop = 1000   
     res = create_all(ntype, pop)
     pd.DataFrame(res).to_csv(f'../sim_data/time_{ntype}_{pop}.csv')
     
