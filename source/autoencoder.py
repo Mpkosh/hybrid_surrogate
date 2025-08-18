@@ -3,7 +3,35 @@ import torch.nn as nn
 
 
 class Autoencoder(nn.Module):
-    pass
+    def __init__(self, input_size, hidden_size, latent_size, output_size):
+        super(Autoencoder, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(input_size, hidden_size),
+            nn.SiLU(inplace=True),
+            nn.Linear(hidden_size, hidden_size),
+            nn.SiLU(inplace=True),
+            nn.Linear(hidden_size, latent_size),
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_size, hidden_size),
+            nn.SiLU(inplace=True),
+            nn.Linear(hidden_size, hidden_size),
+            nn.SiLU(inplace=True),
+            nn.Linear(hidden_size, output_size),
+        )
+
+    def encode(self, x):
+        z = self.encoder(x)
+        return z
+
+    def decode(self, z):
+        x_recon = self.decoder(z)
+        return x_recon
+
+    def forward(self, x):
+        z = self.encode(x)
+        x_recon = self.decode(z)
+        return x_recon
 
 
 class VariationalAutoencoder(nn.Module):
