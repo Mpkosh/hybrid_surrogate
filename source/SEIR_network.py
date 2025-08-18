@@ -20,7 +20,7 @@ class SEIRNetworkModel():
             beta=0.625, gamma=1, delta=1/4, init_inf_frac=1e-3, init_rec_frac=2e-1)
         self.last_sim_params = None
 
-        self.G = nx.barabasi_albert_graph(population, 5)
+        self.G = nx.barabasi_albert_graph(population, m=5, seed=42)
 
     @staticmethod
     def find_nearest_idx(array, value):
