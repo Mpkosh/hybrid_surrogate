@@ -24,14 +24,14 @@ class SEIRNetworkModel():
         self.last_sim_params = None
         
         if ntype=='ba':
-            self.G = nx.barabasi_albert_graph(population, 8, seed=chosen_seed)
+            self.G = nx.barabasi_albert_graph(population, 5, seed=chosen_seed)
             print('ba')
         elif ntype=='sw':
-            self.G = nx.watts_strogatz_graph(population, 8, 0.1, seed=chosen_seed)
+            self.G = nx.watts_strogatz_graph(population, 5, 0.1, seed=chosen_seed)
             print('sw')
         elif ntype=='r':
             # чтобы средняя степень была 8
-            self.G = nx.fast_gnp_random_graph(population, 8/population, seed=chosen_seed)
+            self.G = nx.fast_gnp_random_graph(population, 5/population, seed=chosen_seed)
             print('r')
         
         

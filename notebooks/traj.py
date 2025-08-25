@@ -49,9 +49,9 @@ def save_seir_df(res, pop, ntype, seed,
     
 
 def create_all(ntype = 'r', pop = 10**4):
-    tmax = 250 # time in days for simulation
+    tmax = 150 # time in days for simulation
     columns = ['beta', 'gamma', 'delta', 
-               'init_inf_frac', 'init_rec_frac']+ \
+               'init_inf_frac', 'alpha']+ \
               [day_index for day_index in range(tmax)]
     dataset = pd.DataFrame(columns=columns)
     
@@ -59,45 +59,49 @@ def create_all(ntype = 'r', pop = 10**4):
     chosen_seed = np.random.RandomState(42)
     network_model = SEIRNetworkModel(pop, ntype, chosen_seed)
 
-    gamma = 0.1 # rate: E -> I
-    delta = 0.08 # recovery rate: I -> R
+    #sigma = 0.1 # rate: E -> I
+    #gamma = 0.08 # recovery rate: I -> R
+    
+    gamma = 0.3 # latent period rate
+    delta = 0.2 # recovery rate
     # fraction of initially infected
 
     # fraction of initially recovered
-    init_rec_frac = 0
+    init_inf_frac = 1e-4 # fraction of initially infected
     # transmission rate
-    beta_arr = np.arange(0.01, 0.2, 0.01) #np.arange(0.04, 0.09, 0.01)
-    init_inf_frac_arr = np.arange(0.004, 0.021, 0.0005) #np.arange(0.005, 0.011, 0.001)
+    beta_arr = np.arange(0.1, 1, 0.01) #np.arange(0.04, 0.09, 0.01)
+    alpha_arr = np.arange(0.2, 1, 0.01) #np.arange(0.005, 0.011, 0.001)
 
     n_runs = 10 #50
     times = []
     for beta in tqdm.tqdm(beta_arr):
-        for init_inf_frac in init_inf_frac_arr:
+        for alpha in alpha_arr:
             for seed in range(n_runs):
                 start_time = time.time()
                 res = network_model.simulate(beta=beta, gamma=gamma, 
                                              delta=delta, 
                                              init_inf_frac=init_inf_frac, 
-                                             init_rec_frac=init_rec_frac,
+                                             init_rec_frac=(1-alpha),
                                              tmax=tmax)
                 end_time = time.time()
                 times.append(end_time-start_time)
-                sample = [beta, gamma, delta, 
-                          init_inf_frac, init_rec_frac] + res.daily_incidence
+                
+                sample = [beta, gamma, delta, init_inf_frac, alpha] + res.daily_incidence
                 dataset.loc[len(dataset)] = sample
+                
 
                 save_seir_df(res, pop, ntype, seed,
                              beta, gamma, delta,
-                             init_inf_frac, init_rec_frac)
-    return times    
+                             init_inf_frac, alpha)
+    return times, dataset    
 
 
 if __name__ == '__main__':
 
 
     ntype = 'ba'
-    pop = 1000   
-    res = create_all(ntype, pop)
+    pop = 100000  
+    res, dataset = create_all(ntype, pop)
     pd.DataFrame(res).to_csv(f'../sim_data/time_{ntype}_{pop}.csv')
-    
+    pd.DataFrame(dataset).to_csv(f'../sim_data/data_{ntype}_{pop}.csv')
     
