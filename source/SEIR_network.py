@@ -15,11 +15,10 @@ class SEIRNetworkModel():
         # FOLLOWING PARAMETERS ARE EPIDEMICALLY DETERMINED
         # R_0 HERE LIES IN RANGE [1; 2.5]
         self.min_params = SEIRParams(
-            beta=1/9, gamma=1/5, delta=1/9, init_inf_frac=1e-6, init_rec_frac=1e-2)
+            alpha=0.99, beta=1/9, gamma=1/5, delta=1/9, init_inf_frac=1e-6)
         self.max_params = SEIRParams(
-            beta=0.625, gamma=1, delta=1/4, init_inf_frac=1e-3, init_rec_frac=2e-1)
+            alpha=0.8, beta=0.625, gamma=1, delta=1/4, init_inf_frac=1e-3)
         self.last_sim_params = None
-
         self.G = nx.barabasi_albert_graph(population, m=5, seed=42)
 
     @staticmethod
@@ -38,7 +37,7 @@ class SEIRNetworkModel():
                                            model_output.R[indices])
         return new_model_output
 
-    def simulate(self, beta=1/7*1.5, gamma=1/2, delta=1/7, init_inf_frac=1e-4, init_rec_frac=0.15, tmax: int = 150):
+    def simulate(self, alpha=0.85, beta=1/7*1.5, gamma=1/2, delta=1/7, init_inf_frac=1e-4, tmax: int = 150):
         '''
         Parameters:
 
@@ -57,7 +56,7 @@ class SEIRNetworkModel():
         initial_status = defaultdict(lambda: 'S')
         for node in range(initial_infected):
             initial_status[node] = 'I'
-        initial_recovered = int(init_rec_frac*self.population)
+        initial_recovered = int((1-alpha)*self.population)
         assert initial_recovered + initial_infected < self.population, \
             "Incorrect initial conditions, immune + infected > population size!"
         for node in range(initial_recovered):

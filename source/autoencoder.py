@@ -2,6 +2,20 @@ import torch
 import torch.nn as nn
 
 
+class AESurrogateModel():
+    def __init__(self, population: int):
+        self.model = torch.load('../models/autoencoder_barabasi_100k.pt',
+                                weights_only=False)
+        self.model.eval()
+
+    def simulate(self, alpha, beta, gamma=None, delta=None, init_inf_frac=None, tmax=None):
+        alpha_t = torch.tensor(float(alpha), dtype=torch.float32)
+        beta_t = torch.tensor(float(beta), dtype=torch.float32)
+        self.daily_incidence = self.model(
+            torch.tensor([beta_t, alpha_t])).detach().cpu().numpy()
+        return self.daily_incidence
+
+
 class Autoencoder(nn.Module):
     def __init__(self, input_size, hidden_size, latent_size, output_size):
         super(Autoencoder, self).__init__()
