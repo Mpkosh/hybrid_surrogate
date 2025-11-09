@@ -9,32 +9,52 @@ class SEIRForecaster():
     def __init__(self, initial_params: SEIRParams):
         self.best_params = initial_params
 
-    def calibrate(self, model, observed, epsilon=2000):
-        epidemic_len = len(observed)
+    def calibrate(self, model, full_observed, period, epsilon=2000):
+        observed = full_observed[:period].copy()
+        
+        '''
         zeros_arr = np.where(observed == 0)[0]
         if len(zeros_arr) > 1:
             epidemic_len = zeros_arr[1]
-
+        '''
         def simulation_func(rng, alpha, beta, gamma,
-                            delta, init_inf_frac, size=None):
+                            delta, init_inf_frac, epidemic_len, size=None):
+            epidemic_len = np.array(epidemic_len).flatten()[0]
             return model.simulate(alpha, beta, gamma, delta, init_inf_frac)[:epidemic_len]
 
         with pm.Model() as PMmodel:
+            real_data = pm.Data("incidence", 
+                        observed)
             alpha = pm.Uniform(
-                name="alpha", lower=.001, upper=1)
+                name="alpha", lower=.0001, upper=1)
             beta = pm.Uniform(
-                name="beta", lower=0.001, upper=1)
-
+                name="tau", lower=0.0, upper=1)
+            #epidemic_len = len(observed)
             sim = pm.Simulator(
                 'sim',
                 simulation_func,
                 params=(alpha, beta, self.best_params.gamma,
-                        self.best_params.delta, self.best_params.init_inf_frac),
+                        self.best_params.delta, self.best_params.init_inf_frac,
+                       real_data.shape[0]),
                 epsilon=epsilon,
-                observed=observed[:epidemic_len],
+                observed=real_data,
             )
-            idata = pm.sample_smc(progressbar=True, draws=5000)
+            idata = pm.sample_smc(progressbar=True, draws=2000, chains=4)
+            #idata.extend(pm.sample_posterior_predictive(idatap,
+                                                            #progressbar=progressbar))
+            
 
+        with PMmodel:
+            #out-onew_observedle
+            pm.set_data({'incidence':
+                          full_observed})
+            #epidemic_len = len(full_observed)
+            idata = pm.sample_posterior_predictive(
+                    idata, 
+                    var_names=["sim"],
+                    extend_inferencedata=True, 
+                    predictions=True)
+    
         # az.plot_pair(
         #     idata,
         #     var_names=["beta", "alpha"],
@@ -45,8 +65,10 @@ class SEIRForecaster():
         #     figsize=(11.5, 5),
         # )
         posterior = idata.posterior.stack(samples=("draw", "chain"))
+        
+        
         alpha_arr = posterior["alpha"].values
-        beta_arr = posterior["beta"].values
+        beta_arr = posterior["tau"].values
         self.best_params.alpha = alpha_arr.mean()
         self.best_params.beta = beta_arr.mean()
         return idata
