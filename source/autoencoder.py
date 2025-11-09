@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class AESurrogateModel():
     def __init__(self, population: int):
-        self.model = torch.load('../models/autoencoder_barabasi_100k.pt',
+        self.model = torch.load('../models/autoencoder_barabasi_100k_n.pt',
                                 weights_only=False)
         self.model.eval()
 

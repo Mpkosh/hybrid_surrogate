@@ -40,20 +40,22 @@ class SEIRForecaster():
                 observed=real_data,
             )
             idata = pm.sample_smc(progressbar=True, draws=2000, chains=4)
-            #idata.extend(pm.sample_posterior_predictive(idatap,
-                                                            #progressbar=progressbar))
             
-
-        with PMmodel:
-            #out-onew_observedle
-            pm.set_data({'incidence':
-                          full_observed})
-            #epidemic_len = len(full_observed)
-            idata = pm.sample_posterior_predictive(
-                    idata, 
-                    var_names=["sim"],
-                    extend_inferencedata=True, 
-                    predictions=True)
+            if len(full_observed)==period:
+                print('full calibr')
+                idata.extend(pm.sample_posterior_predictive(idata))
+            
+        if len(full_observed)!=period:
+            with PMmodel:
+                #out-onew_observedle
+                pm.set_data({'incidence':
+                              full_observed})
+                #epidemic_len = len(full_observed)
+                idata = pm.sample_posterior_predictive(
+                        idata, 
+                        var_names=["sim"],
+                        extend_inferencedata=True, 
+                        predictions=True)
     
         # az.plot_pair(
         #     idata,
