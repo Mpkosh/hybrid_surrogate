@@ -16,6 +16,7 @@ class SEIRNetworkModel():
         # FOLLOWING PARAMETERS ARE EPIDEMICALLY DETERMINED
         # R_0 HERE LIES IN RANGE [1; 2.5]
         self.min_params = SEIRParams(
+
             beta=1/9, gamma=1/5, delta=1/9, 
             init_inf_frac=1e-6, init_rec_frac=1e-2)
         self.max_params = SEIRParams(
@@ -34,7 +35,8 @@ class SEIRNetworkModel():
             self.G = nx.fast_gnp_random_graph(population, 5/population, seed=chosen_seed)
             print('r')
         
-        
+
+
     @staticmethod
     def find_nearest_idx(array, value):
         array = np.asarray(array)
@@ -59,10 +61,11 @@ class SEIRNetworkModel():
                                            model_output.R[indices])
         return new_model_output
 
-    
+
     def simulate(self, beta=1/7*1.5, gamma=1/2, delta=1/7, 
                  init_inf_frac=1e-4, init_rec_frac=0.15, 
                  tmax: int = 150, I_frac_switch=0.1):
+
         '''
         Parameters:
 
@@ -81,7 +84,7 @@ class SEIRNetworkModel():
         initial_status = defaultdict(lambda: 'S')
         for node in range(initial_infected):
             initial_status[node] = 'I'
-        initial_recovered = int(init_rec_frac*self.population)
+        initial_recovered = int((1-alpha)*self.population)
         assert initial_recovered + initial_infected < self.population, \
             "Incorrect initial conditions, immune + infected > population size!"
         for node in range(initial_recovered):
